@@ -65,14 +65,29 @@ namespace WPF_Log_Analysis
           {
               for (int i = 0; i < tabs; i++)
               {
-                  Console.Out.Write("\t");
                   fh.Write("\t");
               }
               fh.WriteLine(n.title+" "+n.count);
-              Console.WriteLine(n.title + " " + n.count);
               n.print(tabs + 1,fh);
 
           }
+      }
+      public string GetInfo(int tabs)
+      {
+          children.Sort();
+          string info = "";
+          foreach (Node n in children)
+          {
+              for (int i = 0; i < tabs; i++)
+              {
+                  info += "\t";
+              }
+              
+              info += n.title + " " + n.count +"\n";
+              
+              info+=n.GetInfo(tabs + 1);
+          }
+          return info;
       }
         
     }

@@ -11,6 +11,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
+using System.IO;
 
 namespace WPF_Log_Analysis
 {
@@ -20,24 +22,89 @@ namespace WPF_Log_Analysis
     public partial class MainWindow : Window
     {
         System.Windows.Forms.OpenFileDialog dialog;
+        System.Windows.Forms.SaveFileDialog saveDialogT;
+        System.Windows.Forms.SaveFileDialog saveDialogP;
         Log_Information info;
+        DateTime startDate;
+        DateTime endDate;
+        string longFile, shortFile;
+        private static BackgroundWorker worker = new BackgroundWorker();
         public MainWindow()
         {
             InitializeComponent();
-            info = new Log_Information();
+
             dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.FileOk += new System.ComponentModel.CancelEventHandler(dialog_FileOk);
+
+            saveDialogT = new System.Windows.Forms.SaveFileDialog();
+            saveDialogP = new System.Windows.Forms.SaveFileDialog();
+
+            saveDialogT.FileOk += new CancelEventHandler(saveDialogT_FileOk);
+            saveDialogT.Filter = "Text file (.txt)|*.txt";
+            saveDialogP.FileOk += new CancelEventHandler(saveDialogP_FileOk);
+            saveDialogP.Filter = "JPEG Image (.jpeg)|*.jpeg";
+
+            worker.DoWork += Analyse_file;
+            worker.RunWorkerCompleted += WorkerCompleted;
+
+            worker.WorkerSupportsCancellation = true;
+
+        }
+
+        void saveDialogP_FileOk(object sender, CancelEventArgs e)
+        {
+            Window wind = new Window();
+            Image image2 = new Image();
+            wind.Width = 960;
+            wind.Height = 570;
+            image2.HorizontalAlignment = HorizontalAlignment.Left;
+            image2.Width = wind.Width;
+            image2.Height = wind.Height;
+            image2.Source = info.Picture();
+            wind.Content = image2;
+            wind.Show();
+           
+                RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)wind.Width,
+                                                                               (int)wind.Height,
+                                                                               100, 100, PixelFormats.Default);
+               
+                renderTargetBitmap.Render(image2);
+           
+                
+                JpegBitmapEncoder jpegBitmapEncoder = new JpegBitmapEncoder();
+                jpegBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                using (FileStream fileStream = new FileStream(saveDialogP.FileName, FileMode.Create))
+                {
+                    jpegBitmapEncoder.Save(fileStream);
+                    fileStream.Flush();
+                    fileStream.Close();
+                }
+               
+                //wind.Close();
+        }
+
+        void saveDialogT_FileOk(object sender, CancelEventArgs e)
+        {
+
+            info.print(saveDialogT.FileName);
         }
 
         void dialog_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
         {
             fileText.Text = dialog.FileName;
-           
+            longFile = shortFile = null;//now user can't save old data
+            SavePictureButton.Visibility = Visibility.Hidden;
+            SaveTextButton.Visibility = Visibility.Hidden;
+            image.Visibility = Visibility.Hidden;
+            TextOutPut.Visibility = Visibility.Hidden;
+            Process.Content = null;
+            scrolly.Visibility = Visibility.Hidden;
         }
 
 
         private void Browse_Click(object sender, RoutedEventArgs e)
         {
+           
             dialog.ShowDialog();
         }
 
@@ -45,8 +112,13 @@ namespace WPF_Log_Analysis
         {
             Date_error.Content = null;
             File_error.Content = null;
-
-          
+            info = new Log_Information();
+            SavePictureButton.Visibility = Visibility.Hidden;
+            SaveTextButton.Visibility = Visibility.Hidden;
+            image.Visibility = Visibility.Hidden;
+            TextOutPut.Visibility = Visibility.Hidden;
+            scrolly.Visibility = Visibility.Hidden;
+            Process.Content = null;
 
             if (dialog.FileName == "")
             {
@@ -55,44 +127,88 @@ namespace WPF_Log_Analysis
             }
             if (datePicker_Start.SelectedDate.HasValue && datePicker_End.SelectedDate.HasValue)
             {
-                DateTime startDate = datePicker_Start.SelectedDate.Value;
-                DateTime endDate = datePicker_End.SelectedDate.Value;
+                startDate = datePicker_Start.SelectedDate.Value;
+                endDate = datePicker_End.SelectedDate.Value;
+                if (startDate.CompareTo(DateTime.Today) > 0 || endDate.CompareTo(DateTime.Today) > 0)
+                {
+                    Date_error.Content = "Dates must be before todays date";
+                    return;
+                }
                 if (startDate.CompareTo(endDate) < 0)
-                {   
-                    Process.Content="Processing...";
+                {
+                    Process.Content = "Processing...";
                     UpdateLayout();
-                    info.run(dialog.FileName, startDate, endDate);
-                    Process.Content = "Done!";
-                    
-                   
-                    info.print(dialog.FileName.Remove(dialog.FileName.Length - dialog.SafeFileName.Length)+"Log_Analysis_"+startDate.ToLongDateString()+"--"+endDate.ToLongDateString()+".txt");
-
-
-                    image.Source = info.Picture();
+                    longFile = dialog.FileName;
+                    shortFile = dialog.SafeFileName;
+                    if (worker.IsBusy)
+                    {
+                        worker.CancelAsync();
+                    }
+                    worker.RunWorkerAsync();
+                    return;
                 }
                 else
                 {
                     Date_error.Content = "Start date must be before end date";
+                    return;
                 }
             }
             else
             {
                 Date_error.Content = "Please enter start and end date.";
+                return;
             }
+        }
+        void Analyse_file(object sender, DoWorkEventArgs e)
+        {
+            e.Result = info.run(longFile, startDate, endDate);
+        }
+        void WorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if ((int)e.Result < 0)
+            {
+                return;
+            }
+            Process.Content = "Done!";
+            TextOutPut.Text = info.GetInfo();
+            image.Source = info.Picture();
+
+            TextOutPut.Visibility = Visibility.Visible;
+            image.Visibility = Visibility.Visible;
+            SavePictureButton.Visibility = Visibility.Visible;
+            SaveTextButton.Visibility = Visibility.Visible;
+            scrolly.Visibility = Visibility.Visible;
+
+            Window wind = new Window();
+            Image image2 = new Image();
+            wind.Width = 960;
+            wind.Height = 570;
+            
+            return;
 
         }
-
         private void SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            DateTime startDate=new DateTime(), endDate;
-            if(datePicker_Start.SelectedDate.HasValue)
-                 startDate = datePicker_Start.SelectedDate.Value;
-            if(datePicker_End.SelectedDate.HasValue)
-                endDate = datePicker_End.SelectedDate.Value;
-            // DateTime time = startDate.Value;
+
             DateLabel.Content = datePicker_Start.SelectedDate.ToString() + " -- " + datePicker_End.SelectedDate.ToString();
-            DateTime comparble = new DateTime(2014,01,30,23,0,0);//year month day hour minute second
-            
+            SavePictureButton.Visibility = Visibility.Hidden;
+            SaveTextButton.Visibility = Visibility.Hidden;
+            image.Visibility = Visibility.Hidden;
+            TextOutPut.Visibility = Visibility.Hidden;
+            scrolly.Visibility = Visibility.Hidden;
+            Process.Content = null;
+        }
+
+        private void SavePicture_Click(object sender, RoutedEventArgs e)
+        {
+            saveDialogP.ShowDialog();
+
+        }
+      
+
+        private void SaveText_Click(object sender, RoutedEventArgs e)
+        {
+            saveDialogT.ShowDialog();           
         }
     }
 }

@@ -32,7 +32,7 @@ namespace WPF_Log_Analysis
             string[] array;
             while ((line = fh.ReadLine()) != null)
             {
-
+                
                 array = line.Split(';');
                 if (array.Length < 2)
                 {
@@ -63,8 +63,11 @@ namespace WPF_Log_Analysis
 
 
                     char[] delim = { ',', '=' };
-                    string[] xy = array[1].Split(delim);
-                    points.Add(new System.Windows.Point(Convert.ToDouble(xy[1]), Convert.ToDouble(xy[3].Substring(0, 10))));
+                    string[] xy = array[1].Split(delim),y;
+                    
+                    delim[0]=' ';
+                    y = xy[3].Split();
+                    points.Add(new System.Windows.Point(Convert.ToDouble(xy[1]), Convert.ToDouble(y[0])));
 
                 }
                 if (array.Length == 2)//from history
@@ -103,7 +106,11 @@ namespace WPF_Log_Analysis
                     }
                     else if (split[6] == "PM")
                     {
-                        return new DateTime(Convert.ToInt32(split[2]), Convert.ToInt32(split[1]), Convert.ToInt32(split[0]), Convert.ToInt32(split[3]) + 12, Convert.ToInt32(split[4]), Convert.ToInt32(split[5]));
+                        int hour=Convert.ToInt32(split[3]);
+                        if(hour<12){
+                            hour+=12;
+                        }
+                        return new DateTime(Convert.ToInt32(split[2]), Convert.ToInt32(split[1]), Convert.ToInt32(split[0]),hour , Convert.ToInt32(split[4]), Convert.ToInt32(split[5]));
                     }
                 }
                 catch (FormatException e)
@@ -164,43 +171,51 @@ namespace WPF_Log_Analysis
 
         public void print(string file)
         {
-            Console.WriteLine(":" + file + ":");
+            
             System.IO.StreamWriter fh = new System.IO.StreamWriter(file);
             fh.WriteLine("Main Menu");
-            Console.WriteLine("Main Menu");
             head.print(1, fh);
             fh.Close();
         }
-
-        public System.Windows.Media.ImageSource Picture()
+        public string GetInfo()
         {
-            Image img= new Image();
+            string Information="Main Menu\n";
+            Information += head.GetInfo(1);
+            return Information;
+
+        }
+
+        public DrawingImage Picture()
+        {
 
             GeometryGroup rGroup = new GeometryGroup();
-            rGroup.Children.Add(new RectangleGeometry(new Rect(0, 0, 1920, 1080)));
+            rGroup.Children.Add(new RectangleGeometry(new Rect(0, 0, 1880, 1040)));
             GeometryDrawing rDrawingP = new GeometryDrawing();
             rDrawingP.Geometry = rGroup;
-            rDrawingP.Pen = new Pen(Brushes.Blue, 50);
-
+            rDrawingP.Pen = new Pen(Brushes.Blue, 20);
 
             GeometryGroup group=new GeometryGroup();
             foreach (Point p in points)
             {
-                group.Children.Add(new EllipseGeometry(p, 10, 10));
+                group.Children.Add(new EllipseGeometry(p, 0.25, 0.25));
             }
             GeometryDrawing gDrawingP = new GeometryDrawing();
             gDrawingP.Geometry = group;
-            gDrawingP.Pen = new Pen(Brushes.Red, 50);
+            SolidColorBrush redBrush = new SolidColorBrush(Colors.Red);
+            redBrush.Opacity = 0.7;
+            
+
+            gDrawingP.Pen = new Pen(redBrush, 10);
+          
 
             DrawingGroup dGroup=new DrawingGroup();
             dGroup.Children.Add(gDrawingP);
             dGroup.Children.Add(rDrawingP);
+            
 
             DrawingImage dImage = new DrawingImage();
             dImage.Drawing = dGroup;
-            
-
-            
+           
             return dImage;
         }
        
