@@ -188,8 +188,15 @@ namespace WPF_Log_Analysis
         public DrawingImage Picture()
         {
 
+            GeometryGroup bGroup = new GeometryGroup();
+            //bGroup.Children.Add(new RectangleGeometry(new Rect(540, 540, 860, 0)));
+            bGroup.Children.Add( new LineGeometry(new Point(0, 540), new Point(1920, 540)));
+            GeometryDrawing bDrawingP = new GeometryDrawing();
+            bDrawingP.Geometry = bGroup;
+            bDrawingP.Pen = new Pen(Brushes.Black, 1080);
+
             GeometryGroup rGroup = new GeometryGroup();
-            rGroup.Children.Add(new RectangleGeometry(new Rect(0, 0, 1880, 1040)));
+            rGroup.Children.Add(new RectangleGeometry(new Rect(10, 10, 1900, 1060)));
             GeometryDrawing rDrawingP = new GeometryDrawing();
             rDrawingP.Geometry = rGroup;
             rDrawingP.Pen = new Pen(Brushes.Blue, 20);
@@ -202,16 +209,15 @@ namespace WPF_Log_Analysis
             GeometryDrawing gDrawingP = new GeometryDrawing();
             gDrawingP.Geometry = group;
             SolidColorBrush redBrush = new SolidColorBrush(Colors.Red);
-            redBrush.Opacity = 0.7;
+            redBrush.Opacity = 0.6;
             
 
             gDrawingP.Pen = new Pen(redBrush, 10);
-          
 
             DrawingGroup dGroup=new DrawingGroup();
-            dGroup.Children.Add(gDrawingP);
-            dGroup.Children.Add(rDrawingP);
-            
+            dGroup.Children.Add(bDrawingP);//background
+            dGroup.Children.Add(rDrawingP);//border
+            dGroup.Children.Add(gDrawingP);//dots
 
             DrawingImage dImage = new DrawingImage();
             dImage.Drawing = dGroup;

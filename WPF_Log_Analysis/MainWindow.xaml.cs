@@ -42,7 +42,7 @@ namespace WPF_Log_Analysis
             saveDialogT.FileOk += new CancelEventHandler(saveDialogT_FileOk);
             saveDialogT.Filter = "Text file (.txt)|*.txt";
             saveDialogP.FileOk += new CancelEventHandler(saveDialogP_FileOk);
-            saveDialogP.Filter = "JPEG Image (.jpeg)|*.jpeg";
+            saveDialogP.Filter = "PNG Image (.png)|*.png";
 
             worker.DoWork += Analyse_file;
             worker.RunWorkerCompleted += WorkerCompleted;
@@ -55,32 +55,33 @@ namespace WPF_Log_Analysis
         {
             Window wind = new Window();
             Image image2 = new Image();
-            wind.Width = 960;
-            wind.Height = 570;
+            wind.Width = 1000;
+            wind.Height = 600;
             image2.HorizontalAlignment = HorizontalAlignment.Left;
-            image2.Width = wind.Width;
-            image2.Height = wind.Height;
+            image2.VerticalAlignment = VerticalAlignment.Top;
+            image2.Width = 960;
+            image2.Height = 540;
             image2.Source = info.Picture();
             wind.Content = image2;
             wind.Show();
            
-                RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)wind.Width,
-                                                                               (int)wind.Height,
+                RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(1000,
+                                                                               560,
                                                                                100, 100, PixelFormats.Default);
                
                 renderTargetBitmap.Render(image2);
-           
-                
-                JpegBitmapEncoder jpegBitmapEncoder = new JpegBitmapEncoder();
-                jpegBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+
+
+                PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
+                pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
                 using (FileStream fileStream = new FileStream(saveDialogP.FileName, FileMode.Create))
                 {
-                    jpegBitmapEncoder.Save(fileStream);
+                    pngBitmapEncoder.Save(fileStream);
                     fileStream.Flush();
                     fileStream.Close();
                 }
                
-                //wind.Close();
+                wind.Close();
         }
 
         void saveDialogT_FileOk(object sender, CancelEventArgs e)
@@ -179,10 +180,6 @@ namespace WPF_Log_Analysis
             SaveTextButton.Visibility = Visibility.Visible;
             scrolly.Visibility = Visibility.Visible;
 
-            Window wind = new Window();
-            Image image2 = new Image();
-            wind.Width = 960;
-            wind.Height = 570;
             
             return;
 
