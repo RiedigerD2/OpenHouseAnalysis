@@ -185,7 +185,7 @@ namespace WPF_Log_Analysis
 
         }
 
-        public DrawingImage Picture()
+        public DrawingImage Picture(double radi,double thickness)
         {
 
             GeometryGroup bGroup = new GeometryGroup();
@@ -204,15 +204,15 @@ namespace WPF_Log_Analysis
             GeometryGroup group=new GeometryGroup();
             foreach (Point p in points)
             {
-                group.Children.Add(new EllipseGeometry(p, 0.25, 0.25));
+                group.Children.Add(new EllipseGeometry(p, radi, radi));
             }
             GeometryDrawing gDrawingP = new GeometryDrawing();
             gDrawingP.Geometry = group;
             SolidColorBrush redBrush = new SolidColorBrush(Colors.Red);
-            redBrush.Opacity = 0.6;
+            redBrush.Opacity = 1;
             
 
-            gDrawingP.Pen = new Pen(redBrush, 10);
+            gDrawingP.Pen = new Pen(redBrush,thickness);
 
             DrawingGroup dGroup=new DrawingGroup();
             dGroup.Children.Add(bDrawingP);//background

@@ -22,12 +22,21 @@
                 </StackPanel>
                 <Label Content="---" Name="DateLabel" Margin="5"/>
                 <Label Name="Date_error" Foreground="Red"/>
-                <Button HorizontalAlignment="Left" Content="Analyse" Width="80" Margin="10,15,15,15" Click="Analyse_Click"/>
+                
+               
+                <Button HorizontalAlignment="Left" Content="Analyse" Width="80" Margin="10,15,15,15" 
+                        Click="Analyse_Click"/>
+                
                 <Label Name="Process"/>
                 <ScrollViewer Visibility="Hidden" Name="scrolly" MaxHeight="200" MaxWidth="400">
                     <TextBlock Background="Ivory" Name="TextOutPut"  MaxWidth="400" Visibility="Hidden"/>
                 </ScrollViewer>
                 <Image Name="image" Width="600" Visibility="Hidden"/>
+
+                <Label Name="radi_Label" Visibility="Hidden" Content="radious of touch dots"/>
+                <Slider  Width="600" Minimum="1" Maximum="20" Name="radi" ValueChanged="thickness_ValueChanged" Visibility="Hidden" Value="7"/>
+                <Label Name="thickness_label" Content="thickness of touch dots" Visibility="Hidden"/>
+                <Slider  Width="600" Minimum="1" Maximum="20" Name="thickness"   ValueChanged="thickness_ValueChanged"   Visibility="Hidden" Value="3"/>
 
 
                 <StackPanel Orientation="Horizontal">

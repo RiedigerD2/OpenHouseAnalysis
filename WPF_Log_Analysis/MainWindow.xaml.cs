@@ -61,27 +61,27 @@ namespace WPF_Log_Analysis
             image2.VerticalAlignment = VerticalAlignment.Top;
             image2.Width = 960;
             image2.Height = 540;
-            image2.Source = info.Picture();
+            image2.Source = info.Picture(radi.Value, thickness.Value);
             wind.Content = image2;
             wind.Show();
-           
-                RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(1000,
-                                                                               560,
-                                                                               100, 100, PixelFormats.Default);
-               
-                renderTargetBitmap.Render(image2);
+
+            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(1000,
+                                                                           560,
+                                                                           100, 100, PixelFormats.Default);
+
+            renderTargetBitmap.Render(image2);
 
 
-                PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
-                pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                using (FileStream fileStream = new FileStream(saveDialogP.FileName, FileMode.Create))
-                {
-                    pngBitmapEncoder.Save(fileStream);
-                    fileStream.Flush();
-                    fileStream.Close();
-                }
-               
-                wind.Close();
+            PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
+            pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+            using (FileStream fileStream = new FileStream(saveDialogP.FileName, FileMode.Create))
+            {
+                pngBitmapEncoder.Save(fileStream);
+                fileStream.Flush();
+                fileStream.Close();
+            }
+
+            wind.Close();
         }
 
         void saveDialogT_FileOk(object sender, CancelEventArgs e)
@@ -94,18 +94,14 @@ namespace WPF_Log_Analysis
         {
             fileText.Text = dialog.FileName;
             longFile = shortFile = null;//now user can't save old data
-            SavePictureButton.Visibility = Visibility.Hidden;
-            SaveTextButton.Visibility = Visibility.Hidden;
-            image.Visibility = Visibility.Hidden;
-            TextOutPut.Visibility = Visibility.Hidden;
+            Analyisis_Visisble(Visibility.Hidden);
             Process.Content = null;
-            scrolly.Visibility = Visibility.Hidden;
         }
 
 
         private void Browse_Click(object sender, RoutedEventArgs e)
         {
-           
+
             dialog.ShowDialog();
         }
 
@@ -114,11 +110,7 @@ namespace WPF_Log_Analysis
             Date_error.Content = null;
             File_error.Content = null;
             info = new Log_Information();
-            SavePictureButton.Visibility = Visibility.Hidden;
-            SaveTextButton.Visibility = Visibility.Hidden;
-            image.Visibility = Visibility.Hidden;
-            TextOutPut.Visibility = Visibility.Hidden;
-            scrolly.Visibility = Visibility.Hidden;
+            Analyisis_Visisble(Visibility.Hidden);
             Process.Content = null;
 
             if (dialog.FileName == "")
@@ -172,15 +164,10 @@ namespace WPF_Log_Analysis
             }
             Process.Content = "Done!";
             TextOutPut.Text = info.GetInfo();
-            image.Source = info.Picture();
+            image.Source = info.Picture(radi.Value, thickness.Value);
 
-            TextOutPut.Visibility = Visibility.Visible;
-            image.Visibility = Visibility.Visible;
-            SavePictureButton.Visibility = Visibility.Visible;
-            SaveTextButton.Visibility = Visibility.Visible;
-            scrolly.Visibility = Visibility.Visible;
+            Analyisis_Visisble(Visibility.Visible);
 
-            
             return;
 
         }
@@ -188,11 +175,7 @@ namespace WPF_Log_Analysis
         {
 
             DateLabel.Content = datePicker_Start.SelectedDate.ToString() + " -- " + datePicker_End.SelectedDate.ToString();
-            SavePictureButton.Visibility = Visibility.Hidden;
-            SaveTextButton.Visibility = Visibility.Hidden;
-            image.Visibility = Visibility.Hidden;
-            TextOutPut.Visibility = Visibility.Hidden;
-            scrolly.Visibility = Visibility.Hidden;
+            Analyisis_Visisble(Visibility.Hidden);
             Process.Content = null;
         }
 
@@ -201,11 +184,47 @@ namespace WPF_Log_Analysis
             saveDialogP.ShowDialog();
 
         }
-      
+
 
         private void SaveText_Click(object sender, RoutedEventArgs e)
         {
-            saveDialogT.ShowDialog();           
+            saveDialogT.ShowDialog();
+        }
+
+       
+
+        private void Analyisis_Visisble(Visibility vis)
+        {
+
+            TextOutPut.Visibility = vis;
+            image.Visibility = vis;
+            SavePictureButton.Visibility = vis;
+            SaveTextButton.Visibility = vis;
+            scrolly.Visibility = vis;
+            thickness.Visibility = vis;
+            radi.Visibility = vis;
+            thickness_label.Visibility = vis;
+            radi_Label.Visibility = vis;
+
+        }
+
+      
+
+
+
+
+
+        private void thickness_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (image != null && info!=null)
+            {
+                image.Source = info.Picture(radi.Value, thickness.Value);
+                Console.WriteLine("value\n");
+            }
+            else
+            {
+                Console.WriteLine("null");
+            }
         }
     }
 }
